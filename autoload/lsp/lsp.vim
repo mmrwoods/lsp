@@ -489,8 +489,12 @@ def BufferInit(lspserverId: number, bnr: number): void
   # add a listener to track changes to this buffer
   listener_add((_bnr: number, start: number, end: number, added: number, changes: list<dict<number>>) => {
     var timerid: number = getbufvar(bnr, 'LspDidChangeTimer', 0)
+    # always notify on the latest change, discard other pending notifications
+    # WARNING: this only works when TextDocumentSyncKind is Full, or if pending
+    # chagnes are accumulated or computed via diff with original on notfication.
+    # Currently lspserver.TextdocDidChange() assumes TextDocumentSyncKind Full
     if timerid != 0
-      return
+      timer_stop(timerid)
     endif
     timerid = timer_start(opt.lspOptions.textChangeDelay, (_) => {
       lspserver.textdocDidChange(bnr, start, end, added, changes)
