@@ -487,15 +487,16 @@ def BufferInit(lspserverId: number, bnr: number): void
   lspserver.textdocDidOpen(bnr, ftype)
 
   # add a listener to track changes to this buffer
-  b:lspBufChangeDebounceTimer = 0
   listener_add((_bnr: number, start: number, end: number, added: number, changes: list<dict<number>>) => {
-    # NOTE: Temporary fix for slowness and lag when editing large buffers until
-    # range based buffer update is supported.
-    if b:lspBufChangeDebounceTimer != 0 | return | endif
-    b:lspBufChangeDebounceTimer = timer_start(250, (_) => {
+    var timerid: number = getbufvar(bnr, 'LspDidChangeTimer', 0)
+    if timerid != 0
+      return
+    endif
+    timerid = timer_start(opt.lspOptions.textChangeDelay, (_) => {
       lspserver.textdocDidChange(bnr, start, end, added, changes)
-      b:lspBufChangeDebounceTimer = 0
+      setbufvar(bnr, 'LspDidChangeTimer', 0)
     })
+    setbufvar(bnr, 'LspDidChangeTimer', timerid)
   }, bnr)
 
   AddBufLocalAutocmds(lspserver, bnr)

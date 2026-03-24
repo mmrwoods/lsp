@@ -191,6 +191,9 @@ export var lspOptions: dict<any> = {
   # enable snippet completion support
   snippetSupport: false,
 
+  # Delay in milliseconds for sending didChange notifications to the server
+  textChangeDelay: 150,
+
   # enable SirVer/ultisnips completion support
   ultisnipsSupport: false,
 
